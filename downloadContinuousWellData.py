@@ -92,7 +92,7 @@ def getWellReport(swid):
 	# change it into one string with commas seperating values
 	s=","
 	info=s.join(info)
-	print(info)
+	#print(info)
 
 	return info
 
@@ -111,34 +111,9 @@ if __name__ == "__main__":
 	createFlagReport = 0
 	createFlagData = 0
 	for swid in swidArray:
-	
-		# do the reports first, do it in a try except block so if there any reports are missing it catches the error
-		try:
-			report = getWellReport(swid)
-			if createFlagReport == 0:
-				f = open("wellReports.txt","w+")
-				f.write("wellID,lat,long,elevationFT,RPFT,screenInterval\n")
-				f.write(report + '\n')
-				f.close
-				createFlagReport = 1
-			else:
-				f=open("wellReports.txt", "a+")
-				f.write(report + '\n')
-				f.close
-		except:
-			if createFlagReport == 0:
-				f = open("wellReports.txt","w+")
-				f.write("wellID,lat,long,elevationFT,RPFT,screenInterval\n")
-				f.write(swid + ",NoData,NoData,NoData,NoData,NoData\n")
-				f.close
-				createFlagReport = 1
-			else:
-				f=open("wellReports.txt", "a+")
-				f.write(swid + ",NoData,NoData,NoData,NoData,NoData\n")
-				f.write(report)
-				f.close
+		dataPresenceFlag = "1"
 		
-		# do the data now    
+		# do the data    
 		try:
 			data = getWDLContinuous(swid,year)
 			if createFlagData == 0:
@@ -147,14 +122,34 @@ if __name__ == "__main__":
 			else:
 				data.to_csv('wellData.csv', index=False, mode='a', header=False)
 		except:
-			if createFlagData == 0:
-				f = open("wellData.csv","w+")
-				f.write("SWID,GWSE_ft,Day,Time\n")
-				f.write(swid + ",NoData,NoData,NoData\n")
-				createFlagData = 1
+			print("No data for " + swid)
+			dataPresenceFlag = "0"
+
+		# do the reports, do it in a try except block so if there any reports are missing it catches the error
+		try:
+			report = getWellReport(swid)
+			if createFlagReport == 0:
+				f = open("wellReports.txt","w+")
+				f.write("wellID,lat,long,elevationFT,RPFT,screenInterval,data\n")
+				f.write(report + ',' + dataPresenceFlag + '\n')
+				f.close
+				createFlagReport = 1
 			else:
-				f = open("wellData.csv","a+")
-				f.write(swid + ",NoData,NoData,NoData\n")
+				f=open("wellReports.txt", "a+")
+				f.write(report + ',' + dataPresenceFlag + '\n')
+				f.close
+		except:
+			if createFlagReport == 0:
+				f = open("wellReports.txt","w+")
+				f.write("wellID,lat,long,elevationFT,RPFT,screenInterval,data\n")
+				f.write(swid + ",NoData,NoData,NoData,NoData,NoData," + dataPresenceFlag + "\n")
+				f.close
+				createFlagReport = 1
+			else:
+				f=open("wellReports.txt", "a+")
+				f.write(swid + ",NoData,NoData,NoData,NoData,NoData," + dataPresenceFlag + "\n")
+				f.write(report)
+				f.close
 		
 		# sleep just in case the DWR server thinks this is a DDOS attack
 		time.sleep(0.1)
