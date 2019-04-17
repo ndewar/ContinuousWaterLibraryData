@@ -8,7 +8,7 @@ Pass the script the name of the file with the SWIDs and the year you want data f
 
 listOfWellIDSGlenn.txt is an example containing every SWID for Glenn county.
 
-Use of the script would be to execute the following from a terminal:\n
+Use of the script would be to execute the following from a terminal:<br/>
 $ python downloadContinuousWellData.py listOfWellIDSGlenn.txt 2018
 That would download the well report information and put it into a text file named wellReports.txt and put the
 data for 2018 into a file called wellData.csv
