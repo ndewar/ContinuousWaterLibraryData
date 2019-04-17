@@ -15,6 +15,7 @@ import os
 import time
 import requests
 import sys
+import re
 
 def getWDLContinuous(swid, year):
     
@@ -29,17 +30,18 @@ def getWDLContinuous(swid, year):
 	# convert the type of the date column to a string
 	df['Date']=df['Date'].astype(str)
 	
-	# split the column at the space
-	new = df["Date"].str.split(" ", n = 1, expand = True) 
+	if year != "POR":
+		# split the column at the space
+		new = df["Date"].str.split(" ", n = 1, expand = True) 
 	
-	# making seperate day column from new data frame 
-	df["Day"]= new[0] 
+		# making seperate day column from new data frame 
+		df["Day"]= new[0] 
 	
-	# making seperate time column from new data frame 
-	df["Time"]= new[1] 
+		# making seperate time column from new data frame 
+		df["Time"]= new[1] 
 	
-	# Dropping old date column
-	df=df.drop(['Date'], axis=1)
+		# Dropping old date column
+		df=df.drop(['Date'], axis=1)
 	
 	# add a column that just has the swid
 	df["SWID"]=swid
@@ -103,7 +105,7 @@ if __name__ == "__main__":
 	if file.mode == 'r':
 		contents = file.readlines()
 		for swid in contents:
-			swidArray.append(swid[:-1])
+			swidArray.append(re.sub(r'\n','',swid))
 
 	# import the data, try and except loops are for wells missing 2018 data
 	createFlagReport = 0
@@ -140,10 +142,10 @@ if __name__ == "__main__":
 		try:
 			data = getWDLContinuous(swid,year)
 			if createFlagData == 0:
-				data.to_csv('wellData.csv')
+				data.to_csv('wellData.csv', index=False)
 				createFlagData = 1
 			else:
-				data.to_csv('wellData.csv', mode='a', header=False)
+				data.to_csv('wellData.csv', index=False, mode='a', header=False)
 		except:
 			if createFlagData == 0:
 				f = open("wellData.csv","w+")
