@@ -73,8 +73,19 @@ def getWellReport(swid):
 				latitude=temp[1]
 			if temp[0]=="Longitude:":
 				longitude=temp[1]
-			if temp[0]=="Site:":
-				screen=temp[3]
+
+			# check for the million different ways of formatting the screened interval (eye roll emoji)
+			if temp[0]=="Site":
+				if len(temp)<=5 or temp[5] == 'unknown' or temp[6] == 'unknown':
+					screen = 'unknown'
+				elif temp[5] == 'to':
+					screen=temp[4] + '-' + temp[6]
+				elif temp[6] == 'bgs' or temp[7] == 'bgs' or temp[7] == 'bgs.':
+					screen=temp[5]
+				elif temp[5] == 'interval':
+					screen=temp[6] + '-' + temp[8]
+				else:
+					screen=temp[5] + '-' + temp[7]
 			if temp[0]=="Elevation:":
 				elevation=temp[1]
 			if temp[1]=="RP":
@@ -82,6 +93,9 @@ def getWellReport(swid):
 		except:
 			pass
 	
+	# remove and commas in thousands
+	screen=re.sub(",","",screen)
+
 	# append everything to the info list
 	info.append(latitude)
 	info.append(longitude)
@@ -92,7 +106,6 @@ def getWellReport(swid):
 	# change it into one string with commas seperating values
 	s=","
 	info=s.join(info)
-	#print(info)
 
 	return info
 
@@ -112,7 +125,6 @@ if __name__ == "__main__":
 	createFlagData = 0
 	for swid in swidArray:
 		dataPresenceFlag = "1"
-		
 		# do the data    
 		try:
 			data = getWDLContinuous(swid,year)
@@ -148,8 +160,6 @@ if __name__ == "__main__":
 			else:
 				f=open("wellReports.txt", "a+")
 				f.write(swid + ",NoData,NoData,NoData,NoData,NoData," + dataPresenceFlag + "\n")
-				f.write(report)
 				f.close
-		
 		# sleep just in case the DWR server thinks this is a DDOS attack
 		time.sleep(0.1)
